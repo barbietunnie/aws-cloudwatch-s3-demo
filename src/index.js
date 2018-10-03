@@ -127,14 +127,14 @@ const compressAppData2 = () => {
             console.log(`- ${appDataDir}/${file}`);
         });
 
-        Promise.all(files.map((file, index) => {
+        Promise.all(files.map((file) => {
             // Skip hidden files and the authentication file
             if (!file.endsWith('.json') || file === 'auth.json')
                 return new Promise(resolve => {
                     resolve();
                 });
 
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 archive.file(`${appDataDir}/${file}`, { name: file });
                 resolve();
             });

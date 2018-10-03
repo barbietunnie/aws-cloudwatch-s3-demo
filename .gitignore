@@ -1,4 +1,6 @@
 config.json
-.idea
-node_modules
 yarn-error.log
+
+node_modules/
+.idea/
+data/

@@ -119,8 +119,13 @@ const compressAppData2 = () => {
     archive.on('error', function(err) {
         throw err;
     });
+    outputStream.on('close', function() {
+        console.log(archive.pointer() + ' total bytes written');
+        console.timeEnd('zip');
+    });
     archive.pipe(outputStream);
 
+    console.time('zip');
     fs.readdir(appDataDir, (err, files) => {
         console.log(`${files.length} file(s) were found in the directory: `);
         files.forEach((file) => {

@@ -133,21 +133,29 @@ var compressAppData2 = function compressAppData2() {
         zlib: { level: 9 }
     });
     var outputStream = _fs2.default.createWriteStream(destArchive);
+    archive.on('error', function (err) {
+        throw err;
+    });
+    outputStream.on('close', function () {
+        console.log(archive.pointer() + ' total bytes written');
+        console.timeEnd('zip');
+    });
     archive.pipe(outputStream);
 
+    console.time('zip');
     _fs2.default.readdir(appDataDir, function (err, files) {
         console.log(files.length + ' file(s) were found in the directory: ');
         files.forEach(function (file) {
             console.log('- ' + appDataDir + '/' + file);
         });
 
-        Promise.all(files.map(function (file, index) {
+        Promise.all(files.map(function (file) {
             // Skip hidden files and the authentication file
             if (!file.endsWith('.json') || file === 'auth.json') return new Promise(function (resolve) {
                 resolve();
             });
 
-            return new Promise(function (resolve, reject) {
+            return new Promise(function (resolve) {
                 archive.file(appDataDir + '/' + file, { name: file });
                 resolve();
             });

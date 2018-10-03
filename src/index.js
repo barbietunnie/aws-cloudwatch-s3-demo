@@ -60,6 +60,15 @@ const streamLogs = () => {
     });
 };
 
+/**
+ * Compress files in the 'data/storage' directory excluding
+ * hidden files and 'auth.json' file.
+ * Uses the in-built 'zlib' library to archive it's contents, however, the contents
+ * of the zipped archive cannot be expanded manually for one reason or the other.
+ * The other implementation that uses 'archiver' is better
+ *
+ * @param onFinish func - The function to be invoked when the compression is completed
+ */
 const compressAppData = () => {
     const appDataDir = appRoot.resolve('data/storage');
     const destArchive = appRoot.resolve('data/' +
@@ -104,6 +113,13 @@ const compressAppData = () => {
     });
 };
 
+/**
+ * Compress files in the 'data/storage' directory excluding
+ * hidden files and 'auth.json' file.
+ * Uses 'archiver' library to archive it's contents
+ *
+ * @param onFinish func - The function to be invoked when the compression is completed
+ */
 const compressAppData2 = (onFinish) => {
     const appDataDir = appRoot.resolve('data/storage');
     const destArchive = appRoot.resolve('data/' +

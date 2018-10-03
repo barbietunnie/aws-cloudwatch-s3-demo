@@ -104,7 +104,7 @@ const compressAppData = () => {
     });
 };
 
-const compressAppData2 = () => {
+const compressAppData2 = (onFinish) => {
     const appDataDir = appRoot.resolve('data/storage');
     const destArchive = appRoot.resolve('data/' +
         Math.round(Math.random() * 4026531839 + 268435456).toString(16) + '.zip'); // change later to a temp dir
@@ -121,7 +121,10 @@ const compressAppData2 = () => {
     });
     outputStream.on('close', function() {
         console.log(archive.pointer() + ' total bytes written');
-        console.timeEnd('zip');
+
+        if (onFinish) {
+            onFinish(destArchive);
+        }
     });
     archive.pipe(outputStream);
 
@@ -149,4 +152,7 @@ const compressAppData2 = () => {
 
 // streamLogs();
 // compressAppData();
-compressAppData2();
+compressAppData2((zipFile) => {
+    console.log(`***   Compression completed! - '${zipFile}'   ***`);
+    console.timeEnd('zip');
+});

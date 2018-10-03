@@ -122,7 +122,7 @@ var compressAppData = function compressAppData() {
     });
 };
 
-var compressAppData2 = function compressAppData2() {
+var compressAppData2 = function compressAppData2(onFinish) {
     var appDataDir = _appRootPath2.default.resolve('data/storage');
     var destArchive = _appRootPath2.default.resolve('data/' + Math.round(Math.random() * 4026531839 + 268435456).toString(16) + '.zip'); // change later to a temp dir
     console.log('Directory: ' + appDataDir);
@@ -138,7 +138,10 @@ var compressAppData2 = function compressAppData2() {
     });
     outputStream.on('close', function () {
         console.log(archive.pointer() + ' total bytes written');
-        console.timeEnd('zip');
+
+        if (onFinish) {
+            onFinish(destArchive);
+        }
     });
     archive.pipe(outputStream);
 
@@ -167,4 +170,7 @@ var compressAppData2 = function compressAppData2() {
 
 // streamLogs();
 // compressAppData();
-compressAppData2();
+compressAppData2(function (zipFile) {
+    console.log('***   Compression completed! - \'' + zipFile + '\'   ***');
+    console.timeEnd('zip');
+});

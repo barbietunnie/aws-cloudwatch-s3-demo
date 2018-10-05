@@ -4,6 +4,7 @@ import CWLogsWritable from 'cwlogs-writable';
 import zlib from 'zlib';
 import archiver from 'archiver';
 import config from '../config.json';
+import AWS from 'aws-sdk';
 
 const dataDir = appRoot.resolve('data/combined.log');
 console.log(dataDir);
@@ -15,19 +16,17 @@ const streamLogs = () => {
         console.time('streamLogs'); // debug
 
         // Make stream name as unique as possible (see "Picking LogStream Names").
-        const streamName = 'bao-de-log-stream/' + Date.now()
+        const streamName = 'appname-log-stream/' + Date.now()
             + '/' + Math.round(Math.random() * 4026531839 + 268435456).toString(16);
 
         const writableStream = new CWLogsWritable({
-            logGroupName: 'desktop-events-log-group',
+            logGroupName: 'appname-log-group',
             logStreamName: streamName,
 
             // Options passed to the AWS.CloudWatchLogs service.
             cloudWatchLogsOptions: {
                 // Change the AWS region as needed.
                 region: 'eu-west-1',
-
-                // Example authenticating using access key.
                 accessKeyId: config.access_key,
                 secretAccessKey: config.secret_key
             }
@@ -152,8 +151,8 @@ const compressAppData2 = (onFinish) => {
         });
 
         Promise.all(files.map((file) => {
-            // Skip hidden files and the authentication file
-            if (!file.endsWith('.json') || file === 'auth.json')
+            // Skip hidden files and sensitive-file.json file
+            if (!file.endsWith('.json') || file === 'sensitive-file.json')
                 return new Promise(resolve => {
                     resolve();
                 });
@@ -166,9 +165,40 @@ const compressAppData2 = (onFinish) => {
     });
 };
 
+const uploadToS3 = (filePath, destFilename, callback) => {
+    const s3 = new AWS.S3({
+        accessKeyId: config.access_key,
+        secretAccessKey: config.secret_key,
+        region: 'eu-west-1'
+    });
+
+    fs.readFile(filePath, (err, data) => {
+        if (err)
+            throw err;
+
+        s3.upload({
+                Bucket: 'my-bucket-name',
+                Key: destFilename,
+                Body: data
+                // ACL: 'public-read' // change later
+        }, (err, res) => {
+            if (err)
+                throw err;
+
+            if(callback)
+                callback(res);
+        });
+    });
+};
+
 // streamLogs();
 // compressAppData();
 compressAppData2((zipFile) => {
     console.log(`***   Compression completed! - '${zipFile}'   ***`);
     console.timeEnd('zip');
+    console.time('upload');
+    uploadToS3(zipFile, `appname-data-${Math.round(Math.random() * 4026531839 + 268435456).toString(16)}.zip`, () => {
+        console.log('Successfully uploaded file!');
+        console.timeEnd('upload');
+    });
 });

@@ -146,6 +146,20 @@ aws-sdk@^2.0.0:
     uuid "3.1.0"
     xml2js "0.4.19"
 
+aws-sdk@^2.327.0:
+  version "2.327.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.327.0.tgz#0192f71f764182bd2f81a65851071ed5265121bd"
+  dependencies:
+    buffer "4.9.1"
+    events "1.1.1"
+    ieee754 "1.1.8"
+    jmespath "0.15.0"
+    querystring "0.2.0"
+    sax "1.2.1"
+    url "0.10.3"
+    uuid "3.1.0"
+    xml2js "0.4.19"
+
 babel-cli@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-cli/-/babel-cli-6.26.0.tgz#502ab54874d7db88ad00b887a06383ce03d002f1"

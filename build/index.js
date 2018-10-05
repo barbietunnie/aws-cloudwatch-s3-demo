@@ -24,6 +24,10 @@ var _config = require('../config.json');
 
 var _config2 = _interopRequireDefault(_config);
 
+var _awsSdk = require('aws-sdk');
+
+var _awsSdk2 = _interopRequireDefault(_awsSdk);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var dataDir = _appRootPath2.default.resolve('data/combined.log');
@@ -46,8 +50,6 @@ var streamLogs = function streamLogs() {
             cloudWatchLogsOptions: {
                 // Change the AWS region as needed.
                 region: 'eu-west-1',
-
-                // Example authenticating using access key.
                 accessKeyId: _config2.default.access_key,
                 secretAccessKey: _config2.default.secret_key
             }
@@ -80,6 +82,15 @@ var streamLogs = function streamLogs() {
     });
 };
 
+/**
+ * Compress files in the 'data/storage' directory excluding
+ * hidden files and 'auth.json' file.
+ * Uses the in-built 'zlib' library to archive it's contents, however, the contents
+ * of the zipped archive cannot be expanded manually for one reason or the other.
+ * The other implementation that uses 'archiver' is better
+ *
+ * @param onFinish func - The function to be invoked when the compression is completed
+ */
 var compressAppData = function compressAppData() {
     var appDataDir = _appRootPath2.default.resolve('data/storage');
     var destArchive = _appRootPath2.default.resolve('data/' + Math.round(Math.random() * 4026531839 + 268435456).toString(16) + '.tar.gz'); // change later to a temp dir
@@ -122,6 +133,13 @@ var compressAppData = function compressAppData() {
     });
 };
 
+/**
+ * Compress files in the 'data/storage' directory excluding
+ * hidden files and 'auth.json' file.
+ * Uses 'archiver' library to archive it's contents
+ *
+ * @param onFinish func - The function to be invoked when the compression is completed
+ */
 var compressAppData2 = function compressAppData2(onFinish) {
     var appDataDir = _appRootPath2.default.resolve('data/storage');
     var destArchive = _appRootPath2.default.resolve('data/' + Math.round(Math.random() * 4026531839 + 268435456).toString(16) + '.zip'); // change later to a temp dir
@@ -168,9 +186,37 @@ var compressAppData2 = function compressAppData2(onFinish) {
     });
 };
 
+var uploadToS3 = function uploadToS3(filePath, destFilename, callback) {
+    var s3 = new _awsSdk2.default.S3({
+        accessKeyId: _config2.default.access_key,
+        secretAccessKey: _config2.default.secret_key,
+        region: 'eu-west-1'
+    });
+
+    _fs2.default.readFile(filePath, function (err, data) {
+        if (err) throw err;
+
+        s3.upload({
+            Bucket: 'bao-de',
+            Key: destFilename,
+            Body: data
+            // ACL: 'public-read' // change later
+        }, function (err, res) {
+            if (err) throw err;
+
+            if (callback) callback(res);
+        });
+    });
+};
+
 // streamLogs();
 // compressAppData();
 compressAppData2(function (zipFile) {
     console.log('***   Compression completed! - \'' + zipFile + '\'   ***');
     console.timeEnd('zip');
+    console.time('upload');
+    uploadToS3(zipFile, 'bao-data-' + Math.round(Math.random() * 4026531839 + 268435456).toString(16) + '.zip', function () {
+        console.log('Successfully uploaded file!');
+        console.timeEnd('upload');
+    });
 });
